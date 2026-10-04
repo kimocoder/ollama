@@ -82,7 +82,18 @@ func (m ggufMetadata) number(key string) (json.Number, bool) {
 
 // Keys returns every key the file carried, including omitted ones.
 func (m ggufMetadata) Keys() []string {
-	keys := make([]string, 0, len(m.KV)+len(m.Omitted))
+	kvLen := len(m.KV)
+	omittedLen := len(m.Omitted)
+
+	if kvLen > math.MaxInt-omittedLen {
+		keys := make([]string, 0, kvLen)
+		for k := range m.KV {
+			keys = append(keys, k)
+		}
+		return append(keys, m.Omitted...)
+	}
+
+	keys := make([]string, 0, kvLen+omittedLen)
 	for k := range m.KV {
 		keys = append(keys, k)
 	}
